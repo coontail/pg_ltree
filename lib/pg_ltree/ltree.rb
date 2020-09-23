@@ -126,7 +126,7 @@ module PgLtree
       #
       # @return [Number] height of the given node. Height of the tree for root node.
       def height
-        self_and_descendants.maximum("NLEVEL(#{ltree_path_column})") - depth.to_i
+        ltree_self_and_descendants.maximum("NLEVEL(#{ltree_path_column})") - depth.to_i
       end
 
       # Get node depth
