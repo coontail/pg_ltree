@@ -113,7 +113,7 @@ module PgLtree
       # Check what current node is root
       #
       # @return [Boolean] True - for root node, False - for childen node
-      def root?
+      def ltree_root?
         depth == 1
       end
 
@@ -146,64 +146,64 @@ module PgLtree
       # Get parent of the node
       #
       # return [Object] root node
-      def parent
+      def ltree_parent
         ltree_scope.find_by "#{ltree_scope.table_name}.#{ltree_path_column} = SUBPATH(?, 0, NLEVEL(?) - 1)", ltree_path, ltree_path
       end
 
       # Get leaves of the node
       #
       # @return [ActiveRecord::Relation]
-      def leaves
+      def ltree_leaves
         ltree_scope.leaves.where("#{ltree_scope.table_name}.#{ltree_path_column} <@ ?", ltree_path).where.not ltree_path_column => ltree_path
       end
 
       # Check what current node have leaves
       #
       # @return [Boolean] True - if node have leaves, False - if node doesn't have leaves
-      def leaf?
+      def ltree_leaf?
         leaves.count == 0
       end
 
       # Get self and ancestors
       #
       # @return [ActiveRecord::Relation]
-      def self_and_ancestors
+      def ltree_self_and_ancestors
         ltree_scope.where("#{ltree_scope.table_name}.#{ltree_path_column} @> ?", ltree_path)
       end
 
       # Get ancestors
       #
       # @return [ActiveRecord::Relation]
-      def ancestors
-        self_and_ancestors.where.not ltree_path_column => ltree_path
+      def ltree_ancestors
+        ltree_self_and_ancestors.where.not ltree_path_column => ltree_path
       end
 
       # Get self and descendants
       #
       # @return [ActiveRecord::Relation]
-      def self_and_descendants
+      def ltree_self_and_descendants
         ltree_scope.where("#{ltree_scope.table_name}.#{ltree_path_column} <@ ?", ltree_path)
       end
 
       # Get self and descendants
       # @deprecated Please use {#self_and_descendants} instead
       # @return [ActiveRecord::Relation]
-      def self_and_descendents
+      def ltree_self_and_descendents
         warn '[DEPRECATION] `self_and_descendents` is deprecated. Please use `self_and_descendants` instead.'
-        self_and_descendants
+        ltree_self_and_descendants
       end
 
       # Get descendants
       #
       # @return [ActiveRecord::Relation]
-      def descendants
-        self_and_descendants.where.not ltree_path_column => ltree_path
+      def ltree_descendants
+        ltree_self_and_descendants.where.not ltree_path_column => ltree_path
       end
 
       # Get descendants
       # @deprecated Please use {#descendants} instead
       # @return [ActiveRecord::Relation]
-      def descendents
+      def ltree_descendents
         warn '[DEPRECATION] `descendents` is deprecated. Please use `descendants` instead.'
         descendants
       end
@@ -211,7 +211,7 @@ module PgLtree
       # Get self and siblings
       #
       # @return [ActiveRecord::Relation]
-      def self_and_siblings
+      def ltree_self_and_siblings
         ltree_scope.where(
           "SUBPATH(?, 0, NLEVEL(?) - 1) @> #{ltree_scope.table_name}.#{ltree_path_column} AND nlevel(#{ltree_scope.table_name}.#{ltree_path_column}) = NLEVEL(?)",
           ltree_path, ltree_path, ltree_path
@@ -221,14 +221,14 @@ module PgLtree
       # Get siblings
       #
       # @return [ActiveRecord::Relation]
-      def siblings
+      def ltree_siblings
         self_and_siblings.where.not ltree_path_column => ltree_path
       end
 
       # Get children
       #
       # @return [ActiveRecord::Relation]
-      def children
+      def ltree_children
         ltree_scope.where "? @> #{ltree_scope.table_name}.#{ltree_path_column} AND nlevel(#{ltree_scope.table_name}.#{ltree_path_column}) = NLEVEL(?) + 1",
                           ltree_path, ltree_path
       end
