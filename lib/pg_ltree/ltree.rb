@@ -168,7 +168,7 @@ module PgLtree
       #
       # @return [ActiveRecord::Relation]
       def self_and_ancestors
-        ltree_scope.where("#{ltree_scope.table_name}.#{ltree_path_column} @> ?", ltree_path)
+        ltree_scope.where("#{ltree_scope.table_name}.#{ltree_path_column} @> ?", ltree_path).order(ltree_path_column => "asc")
       end
 
       # Get ancestors
@@ -182,7 +182,7 @@ module PgLtree
       #
       # @return [ActiveRecord::Relation]
       def self_and_descendants
-        ltree_scope.where("#{ltree_scope.table_name}.#{ltree_path_column} <@ ?", ltree_path)
+        ltree_scope.where("#{ltree_scope.table_name}.#{ltree_path_column} <@ ?", ltree_path).order(ltree_path_column => "asc")
       end
 
       #
