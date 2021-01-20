@@ -43,13 +43,20 @@ module PgLtree
       # Get all leaves
       #
       # @return [ActiveRecord::Relation] relations of node's leaves
-      def leaves
-        subquery = unscoped.select("#{table_name}.#{ltree_path_column}")
-                           .from("#{table_name} AS subquery")
-                           .where("#{table_name}.#{ltree_path_column} <> subquery.#{ltree_path_column}")
-                           .where("#{table_name}.#{ltree_path_column} @> subquery.#{ltree_path_column}")
 
-        where.not ltree_path_column => subquery
+      def leaves_subquery
+        unscoped.select("#{table_name}.#{ltree_path_column}")
+          .from("#{table_name} AS subquery")
+          .where("#{table_name}.#{ltree_path_column} <> subquery.#{ltree_path_column}")
+          .where("#{table_name}.#{ltree_path_column} @> subquery.#{ltree_path_column}")
+      end
+
+      def leaves
+        where.not ltree_path_column => leaves_subquery
+      end
+
+      def ramifications
+        where ltree_path_column => leaves_subquery
       end
 
       # Get all with nodes when path liked the lquery
@@ -155,6 +162,10 @@ module PgLtree
       # @return [ActiveRecord::Relation]
       def leaves
         ltree_scope.leaves.where("#{ltree_scope.table_name}.#{ltree_path_column} <@ ?", ltree_path).where.not ltree_path_column => ltree_path
+      end
+
+      def ramifications
+        ltree_scope.ramifications.where("#{ltree_scope.table_name}.#{ltree_path_column} <@ ?", ltree_path).where.not ltree_path_column => ltree_path
       end
 
       # Check what current node have leaves
